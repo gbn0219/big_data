@@ -140,8 +140,11 @@ def build_faiss_for_id(rid: str, docs: List[Dict[str, Any]], index_root: str) ->
         if doc_id in seen:
             continue
         seen.add(doc_id)
-        texts.append(text)
-        metas.append({"id": rid, "doc_id": doc_id})
+        
+        chunks = chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
+        for i, chunk in enumerate(chunks):
+            texts.append(chunk)
+            metas.append({"id": rid, "doc_id": doc_id, "chunk_index": i})
     if not texts:
         return ""
     vs = FAISS.from_texts(texts, embedding=LCEmbeddings(), metadatas=metas)
