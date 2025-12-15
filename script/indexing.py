@@ -140,8 +140,11 @@ def build_faiss_for_id(rid: str, docs: List[Dict[str, Any]], index_root: str) ->
         if doc_id in seen:
             continue
         seen.add(doc_id)
-        texts.append(text)
-        metas.append({"id": rid, "doc_id": doc_id})
+
+        chunks = chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
+        for i, chunk in enumerate(chunks):
+            texts.append(chunk)
+            metas.append({"id": rid, "doc_id": doc_id, "chunk_index": i})
     if not texts:
         return ""
     vs = FAISS.from_texts(texts, embedding=LCEmbeddings(), metadatas=metas)
@@ -168,6 +171,6 @@ def build_indices(data_path: str, index_root: str, sample_size: int = 200, seed:
     return out_paths
 
 if __name__ == "__main__":
-    data_path = "../data/valid.json"
+    data_path = "../data/test1.json"
     index_root = "faiss_indexes"
-    build_indices(data_path, index_root, sample_size=200, seed=42)
+    build_indices(data_path, index_root, sample_size=800, seed=42)

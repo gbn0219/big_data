@@ -8,7 +8,7 @@ from context import Context
 from model import get_response
 from state import State
 
-
+from retrieval_by_id import retrieve_by_id
 
 def generate_influence_oriented_queries(topic: str) -> List[str]:
     """
@@ -76,7 +76,7 @@ def merge_retrieved_docs(task_id: int, topic: str, index_root: str = "faiss_inde
 
 def analyze_influence(state: State) -> State:
     """基于事件摘要+智能检索新闻+主题分析影响"""
-    topic = state["topic"]
+    topic = state.get("event_summary")["topic"]
     task_id = state.get("task_id", "")
 
     # 1. 生成Query并检索新闻
@@ -105,7 +105,7 @@ def analyze_influence(state: State) -> State:
 1. 区分正面/负面影响，清晰说明影响的范围和程度；
 2. 语言流畅、逻辑连贯，无需分维度标注，直接以自然文本输出分析内容；
 3. 所有分析结论优先基于提供的相关资料和事件摘要；
-4. 避免冗余，聚焦核心影响，无需重复事件本身，直接分析影响。
+4. 避免冗余，聚焦核心影响，无需重复事件本身，直接分析影响，字数约100字。
 """
 
     # 拼接Prompt：整合所有信息（按优先级：主题→摘要→检索文档）
@@ -125,7 +125,7 @@ def analyze_influence(state: State) -> State:
 
     # 4. 调用LLM生成分析结果
     messages = [
-        SystemMessage(content=system_prompt),
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ]
 

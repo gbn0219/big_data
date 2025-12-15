@@ -70,7 +70,7 @@ def merge_answer(state: State) -> State:
 
     # 3. 调用LLM执行合并
     messages = [
-        SystemMessage(content=system_prompt),
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ]
 

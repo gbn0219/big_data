@@ -68,26 +68,26 @@ def generate_report(
     failed_ids = []
     reports = []
     for task_id in ids:
-        # try:
-        # Prepare context
-        context = Context()
+        try:
+            # Prepare context
+            context = Context()
 
-        # Execute tasks
-        agent = graph().compile()
+            # Execute tasks
+            agent = graph().compile()
 
-        input_state = InputState(
-            task_id=task_id,
-            topic="",
-        )
-        output_state = agent.invoke(
-            input_state,
-            context=context,
-        )
-        report = output_state["report"]
-        reports.append(report)
-        # except Exception as e:
-        #     print(e)
-        #     failed_ids.append(task_id)
+            input_state = InputState(
+                task_id=task_id,
+                topic="",
+            )
+            output_state = agent.invoke(
+                input_state,
+                context=context,
+            )
+            report = output_state["report"]["merged_content"]
+            reports.append(report)
+        except Exception as e:
+            print(e)
+            failed_ids.append(task_id)
 
     logger.info("Failed IDs: %s", ",".join(i for i in failed_ids))
     output_path = output_dir / f"result.json"

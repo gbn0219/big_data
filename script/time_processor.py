@@ -55,12 +55,22 @@ class TimeProcessor:
                 return datetime.datetime.strptime(date_str, '%m/%d/%Y')
             
             elif re.match(r'\d{10}', date_str):
-                return datetime.datetime.fromtimestamp(int(date_str))
-            
-            elif re.match(r'\d{13}', date_str):
-                return datetime.datetime.fromtimestamp(int(date_str) / 1000)
+                timestamp = int(date_str)
+                # 检查时间戳是否在合理范围内（1970年-2100年）
+                if timestamp > 0 and timestamp < 4102444800:  # 2100-01-01
+                    return datetime.datetime.fromtimestamp(timestamp)
+                else:
+                    return None
                 
-        except (ValueError, OverflowError) as e:
+            elif re.match(r'\d{13}', date_str):
+                timestamp = int(date_str) / 1000
+                # 检查时间戳是否在合理范围内（1970年-2100年）
+                if timestamp > 0 and timestamp < 4102444800:  # 2100-01-01
+                    return datetime.datetime.fromtimestamp(timestamp)
+                else:
+                    return None
+                    
+        except (ValueError, OverflowError, OSError) as e:
             logger.debug(f"无法解析日期: {date_str}, 错误: {e}")
             return None
         

@@ -65,7 +65,7 @@ def generate_topic_and_query(
 
     prompt = (
         "你是一个经验丰富的新闻主题提取专家，负责提取给定新闻文字的主题。\n"
-        "我将为你提供一段新闻文字，请提取新闻的主题，大约10个字。\n"
+        "我将为你提供一段新闻文字的部分内容，请提取新闻的主题，大约10个字。\n"
         "请严格按照以下 json 格式返回结果，不要添加任何额外的解释或代码块标记。例如：\n"
         "    {example}\n\n"
         "请提取以下文档的主题：{doc_content}\n"
@@ -73,11 +73,11 @@ def generate_topic_and_query(
     example = {
         "topic": "大约10个字的主题"
     }
-    
     prompt = prompt.format(
         doc_content=example_doc_content,
         example=example,
     )
+    print(prompt)
     topic = get_response([{"role": "user", "content": prompt}])
     if topic.startswith("```json"):
         topic = topic[topic.find("\n")+1:topic.rfind("\n")]
@@ -88,7 +88,7 @@ def generate_topic_and_query(
         topic_json = ast.literal_eval(topic)
 
     topic = topic_json["topic"]
-
+    print(topic)
 
     prompt = (
         "你是一个经验丰富的提问词生成专家，负责为给定的新闻主题生成查询词。\n"
@@ -126,6 +126,7 @@ def generate_topic_and_query(
         query_words_json = ast.literal_eval(query_words)
 
     query_words = query_words_json["query_words"]
+    print(query_words)
 
     return {
         "event_summary": {
