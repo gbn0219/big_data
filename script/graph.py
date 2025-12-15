@@ -4,11 +4,11 @@ from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 
-from script.context import Context
-from script.state import InputState, OutputState, State
-from script.subagents.event_summary import event_summary_agent
-from script.subagents.influence_analysis import influence_analysis_agent
-from script.subagents.answer_merge import answer_merge_agent
+from context import Context
+from state import InputState, OutputState, State
+from subagents.event_summary import event_summary_agent
+from subagents.influence_analysis import influence_analysis_agent
+from subagents.answer_merge import answer_merge_agent
 
 
 def graph() -> StateGraph:
@@ -41,8 +41,5 @@ def compose_report(
 ) -> dict[str, Any]:
     """Compose report."""
     return {
-        "report": {
-            "序号": state.get("task_id"),
-            "内容": state.get("answer_merge"),
-        }
+        "report": state.get("answer_merge")
     }

@@ -1,2 +1,3 @@
 faiss_indexes/*
+script/faiss_indexes/*
 data/*

@@ -7,17 +7,20 @@ from pathlib import Path
 
 from langchain_community.vectorstores import FAISS
 
-from script.context import Context
-from script.graph import graph
-from script.model import get_embedding
-from script.state import InputState
-
-NUM_TASKS = 250
+from context import Context
+from graph import graph
+from model import get_embedding
+from state import InputState
 
 
 def get_args() -> Namespace:
     """Get args."""
     parser = ArgumentParser()
+    parser.add_argument(
+        "--name",
+        type=str,
+        default="valid",
+    )
     parser.add_argument(
         "--ids",
         type=str,
@@ -28,6 +31,10 @@ def get_args() -> Namespace:
         type=Path,
         default=Path("output/results"),
     )
+
+    args = parser.parse_args()
+    with open("../data/" + args.name + "_ids.json", "r", encoding="utf-8") as f:
+        doc_ids = json.loads(f.read())
     # parser.add_argument(
     #     "--index_path",
     #     type=Path,
@@ -39,60 +46,53 @@ def get_args() -> Namespace:
     #     default="bge",
     # )
 
-    args = parser.parse_args()
     # Handle ids
     if args.ids == "all":
-        args.ids = list(range(1, NUM_TASKS + 1))
+        args.ids = doc_ids
     elif "-" in args.ids:
         start, end = args.ids.split("-")
-        args.ids = list(range(int(start), int(end) + 1))
+        args.ids = [doc_ids[i - 1] for i in range(int(start), int(end) + 1)]
     else:
-        args.ids = [int(i) for i in args.ids.split(",")]
+        args.ids = [doc_ids[i - 1] for i in [int(i) for i in args.ids.split(",")]]
     return args
 
 
 def generate_report(
-    ids: list[int],
+    ids: list[str],
     output_dir: Path,
-    index_path: Path,
-    index_name: str = "index",
 ) -> None:
     """Generate report."""
     logger = logging.getLogger(__name__)
 
-    # Load vector store
-    vector_store = FAISS.load_local(
-        index_path,
-        embeddings=get_embedding(),
-        index_name=index_name,
-        allow_dangerous_deserialization=True,
-    )
-
-    # Prepare context
-    context = Context()
-
-    # Execute tasks
-    agent = graph().compile(store=vector_store)
     output_dir.mkdir(parents=True, exist_ok=True)
     failed_ids = []
-    for i in ids:
-        try:
-            input_state = InputState(
-                task_id=i,
-                topic="",
-            )
-            output_state = agent.invoke(
-                input_state,
-                context=context,
-            )
-            report = output_state["report"]
-            output_path = output_dir / f"{i:0>3}.json"
-            with output_path.open("w", encoding="utf-8") as f:
-                json.dump(report, f, ensure_ascii=False, indent=2)
-        except Exception:
-            failed_ids.append(i)
+    reports = []
+    for task_id in ids:
+        # try:
+        # Prepare context
+        context = Context()
 
-    logger.info("Failed IDs: %s", ",".join(str(i) for i in failed_ids))
+        # Execute tasks
+        agent = graph().compile()
+
+        input_state = InputState(
+            task_id=task_id,
+            topic="",
+        )
+        output_state = agent.invoke(
+            input_state,
+            context=context,
+        )
+        report = output_state["report"]
+        reports.append(report)
+        # except Exception as e:
+        #     print(e)
+        #     failed_ids.append(task_id)
+
+    logger.info("Failed IDs: %s", ",".join(i for i in failed_ids))
+    output_path = output_dir / f"result.json"
+    with output_path.open("w", encoding="utf-8") as f:
+        json.dump([{"id": ids[i], "summary": reports[i]} for i in range(0, len(ids))], f, ensure_ascii=False, indent=2)
 
 
 def main() -> None:
@@ -104,8 +104,6 @@ def main() -> None:
     generate_report(
         ids=args.ids,
         output_dir=args.output,
-        index_path=args.index_path,
-        index_name=args.index_name,
     )
 
 if __name__ == "__main__":

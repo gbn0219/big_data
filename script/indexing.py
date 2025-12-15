@@ -168,6 +168,6 @@ def build_indices(data_path: str, index_root: str, sample_size: int = 200, seed:
     return out_paths
 
 if __name__ == "__main__":
-    data_path = "data/valid.json"
+    data_path = "../data/valid.json"
     index_root = "faiss_indexes"
     build_indices(data_path, index_root, sample_size=200, seed=42)
