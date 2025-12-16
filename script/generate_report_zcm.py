@@ -27,7 +27,7 @@ def get_args() -> tuple[Namespace, dict]:
     parser.add_argument(
         "--ids",
         type=str,
-        default="50",
+        default="300",
     )
     parser.add_argument(
         "--output",
